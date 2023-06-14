@@ -24,6 +24,8 @@ jobs:
           cache: 'pip'
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: chmod +x ./docs_generator.sh 
       - name: Generate documentation
         run: ./docs_generator.sh ${{ env.MODULE_PATHS }}
       - name: Commit changes
