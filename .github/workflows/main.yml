@@ -47,6 +47,4 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: docs/_build
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2 # or the latest "vX.X.X" version tag for this action
+          branch: github-pages
