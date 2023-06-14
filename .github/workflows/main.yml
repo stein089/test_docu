@@ -1,0 +1,37 @@
+name: Generate Documentation with Sphinx
+on:
+  push:
+    branches:
+      - master
+
+env:
+  MODULE_PATHS: src src2
+
+jobs:
+  doc-gen:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11.4
+          architecture: x64
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Generate documentation
+        run: ./docs_generator.sh ${{ env.MODULE_PATHS }}
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          file_pattern: docs/_build
+          commit_message: "docs: generation of documentation"
+      - name: Publish to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs/_build
