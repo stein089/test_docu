@@ -2,7 +2,7 @@ name: Generate Documentation with Sphinx
 on:
   push:
     branches:
-      - master
+      - main
 
 env:
   MODULE_PATHS: src src2
