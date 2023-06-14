@@ -1,18 +1,68 @@
-name: 🚀 Build and Deploy to GH Pages
-on: 
+name: Generate Documentation with Sphinx
+on:
   push:
-  workflow_dispatch:
-permissions: 
+    branches:
+      - main
+
+env:
+  MODULE_PATHS: src src2
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
   contents: write
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  build-and-deploy:
-    concurrency: ci-${{ github.ref }}
+  # Build job
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout
         uses: actions/checkout@v3
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.3.3
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
-          branch: gh-pages
-          folder: .
+          python-version: 3.11.4
+          architecture: x64
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: chmod +x ./docs_generator.sh 
+      - name: Generate documentation
+        run: ./docs_generator.sh ${{ env.MODULE_PATHS }}
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          file_pattern: docs/_build
+          commit_message: "docs: generation of documentation"
+
+
+  # Deploy job
+  deploy:
+    # Add a dependency to the build job
+    needs: build
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Specify runner + deployment step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2 # or the latest "vX.X.X" version tag for this action
